@@ -205,7 +205,7 @@ public class TestEncoders {
     GenericRecord record = datumReader.read(null, jsonDecoder);
     //encoding
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    Encoder jsonEncoder = EncoderFactory.get().jsonEncoder(true, schema, baos);
+    Encoder jsonEncoder = EncoderFactory.get().jsonEncoder(schema, baos, false, true);
     datumWriter.write(record, jsonEncoder);
     jsonEncoder.flush();
     baos.flush();
