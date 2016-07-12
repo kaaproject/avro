@@ -349,6 +349,19 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>repository</id>
+      <distributionManagement>
+        <repository>
+          <id>kaa.release</id>
+          <url>http://repository.kaaproject.org/repository/internal/</url>
+        </repository>
+        <snapshotRepository>
+          <id>kaa.snapshots</id>
+          <url>http://repository.kaaproject.org/repository/snapshots/</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
   </profiles>
 
 </project>
