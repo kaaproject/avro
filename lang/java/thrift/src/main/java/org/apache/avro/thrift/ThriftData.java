@@ -101,8 +101,10 @@ public class ThriftData extends GenericData {
     if (fields == null) {                           // cache miss
       fields = new TFieldIdEnum[s.getFields().size()];
       Class c = r.getClass();
-      for (TFieldIdEnum f : FieldMetaData.getStructMetaDataMap(c).keySet())
+      for (Object o : FieldMetaData.getStructMetaDataMap(c).keySet()) {
+        TFieldIdEnum f = (TFieldIdEnum) o;
         fields[s.getField(f.getFieldName()).pos()] = f;
+      }
       fieldCache.put(s, fields);                  // update cache
     }
     return fields;
@@ -169,8 +171,8 @@ public class ThriftData extends GenericData {
           schema = Schema.createRecord(c.getName(), null, null,
                                        Throwable.class.isAssignableFrom(c));
           List<Field> fields = new ArrayList<Field>();
-          for (FieldMetaData f :
-                 FieldMetaData.getStructMetaDataMap(c).values()) {
+          for (Object o : FieldMetaData.getStructMetaDataMap(c).values()) {
+            FieldMetaData f = (FieldMetaData) o;
             Schema s = getSchema(f.valueMetaData);
             if (f.requirementType == TFieldRequirementType.OPTIONAL
                 && (s.getType() != Schema.Type.UNION))
