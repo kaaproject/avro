@@ -17,19 +17,6 @@
  */
 package org.apache.avro.generic;
 
-import java.nio.ByteBuffer;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.AbstractList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.WeakHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
@@ -39,14 +26,27 @@ import org.apache.avro.UnresolvedUnionException;
 import org.apache.avro.io.BinaryData;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
-import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.parsing.ResolvingGrammarGenerator;
 import org.apache.avro.util.Utf8;
-
+import org.apache.commons.codec.binary.Hex;
 import org.codehaus.jackson.JsonNode;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.AbstractList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /** Utilities for generic Java data. See {@link GenericRecordBuilder} for a convenient
  * way to build {@link GenericRecord} instances.
@@ -460,15 +460,19 @@ public class GenericData {
       buffer.append("\"");
     } else if (isBytes(datum)) {
       buffer.append("{\"bytes\": \"");
-      ByteBuffer bytes = (ByteBuffer)datum;
-      for (int i = bytes.position(); i < bytes.limit(); i++)
-        buffer.append((char)bytes.get(i));
+      buffer.append(encodeHexString((ByteBuffer)datum));
       buffer.append("\"}");
     } else {
       buffer.append(datum);
     }
   }
-  
+
+  private String encodeHexString(ByteBuffer buf) {
+    return (buf != null && buf.hasArray())
+            ? Hex.encodeHexString(buf.array())
+            : "";
+  }
+
   /* Adapted from http://code.google.com/p/json-simple */
   private void writeEscapedString(String string, StringBuilder builder) {
     for(int i = 0; i < string.length(); i++){
@@ -592,7 +596,7 @@ public class GenericData {
   }
 
   /** Return the index for a datum within a union.  Implemented with {@link
-   * Schema#getIndexNamed(String)} and {@link #getSchemaName(Schema,Object)}.*/
+   * Schema#getIndexNamed(String)} and {@link #getSchemaName(Object)}.*/
   public int resolveUnion(Schema union, Object datum) {
     Integer i = union.getIndexNamed(getSchemaName(datum));
     if (i != null)
