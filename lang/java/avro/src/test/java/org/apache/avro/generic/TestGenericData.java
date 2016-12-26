@@ -17,33 +17,35 @@
  */
 package org.apache.avro.generic;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collection;
-import java.util.ArrayDeque;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
-import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema.Type;
+import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.io.BinaryData;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.util.Utf8;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
-
 import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class TestGenericData {
   
@@ -316,6 +318,45 @@ public class TestGenericData {
     
     // will throw exception if string is not parsable json
     mapper.readTree(parser);
+  }
+
+
+  @Test
+  public void testToStringWithByteArray() throws IOException {
+    final byte[] bytes = {-128, -117, -114, -103, -78, -53, -27, -26, -25, -13, -7, -2, -1, 0, 1, 2, 3, 17, 18, 19, 20, 48, 74, 100, 108, 109, 110, 125, 126};
+    String hexEquivalent  = "808b8e99b2cbe5e6e7f3f9feff0001020311121314304a646c6d6e7d7e";
+
+    ByteBuffer buffer = ByteBuffer.wrap(bytes);
+    String toStringResult = (new GenericData()).toString(buffer);
+
+    assertTrue(toStringResult.contains(hexEquivalent));
+  }
+
+  @Test
+  public void testToStringNotAffectsByteBuffer() throws IOException {
+    byte[] bytes = new byte[256];
+    for (byte b = Byte.MIN_VALUE; b < Byte.MAX_VALUE; b++) {
+      bytes[b - Byte.MIN_VALUE] = b;
+    }
+    ByteBuffer buffer = ByteBuffer.wrap(bytes);
+    ByteBuffer buffer_copy;
+
+    int testStep = 17;
+    for (int pos =  0; pos < bytes.length; pos = pos + testStep) {
+      buffer.position(pos);
+      buffer_copy = buffer.duplicate();
+
+      String stringed = (new GenericData()).toString(buffer);
+      System.out.println("OK. Position = " + pos);
+
+      assertEquals(buffer, buffer_copy);
+      assertEquals(buffer.array(), buffer_copy.array());
+      assertEquals(buffer.arrayOffset(), buffer_copy.arrayOffset());
+      assertEquals(buffer.position(), buffer_copy.position());
+      assertEquals(buffer.order(), buffer_copy.order());
+      assertEquals(buffer.capacity(), buffer_copy.capacity());
+      assertEquals(buffer.limit(), buffer_copy.limit());
+    }
   }
 
   @Test
